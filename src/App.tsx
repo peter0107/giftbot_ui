@@ -60,9 +60,6 @@ export default function Component() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
-      <Helmet>
-        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
-      </Helmet>
       <Card className="w-full max-w-md mx-auto overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
           <div className="flex items-center justify-between">
