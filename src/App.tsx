@@ -11,6 +11,7 @@ export default function Component() {
   const [feedback, setFeedback] = useState('')
   const [isCorrect, setIsCorrect] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isFinalSubmitted, setIsFinalSubmitted] = useState(false)
 
   const correctAnswer = "비트코인"
 
@@ -23,6 +24,36 @@ export default function Component() {
     } else {
       setFeedback("틀렸습니다. 다시 시도해주세요.")
       setIsCorrect(false)
+    }
+  }
+
+  const handleFinalSubmit = async () => {
+
+    //api로 보낼 전번
+    const payload= {
+      phoneNumber
+    }
+
+    try{
+      const response=await fetch("http://3.129.40.81/api/participants",{
+        method: 'POST',
+        headers:{
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if(response.ok){
+        setFeedback("참가가 완료되었습니다.")
+        setIsFinalSubmitted(true)
+      } else{
+        setFeedback("참가 요청에 실패했습니다. 다시 시도해주세요.")
+        setIsFinalSubmitted(false)
+      }
+    } catch(error){
+      console.error("Error submitting:",error)
+      setFeedback("서버 오류가 발생했습니다. 나중에 다시 시도해주세요.")
+      setIsFinalSubmitted(false)
     }
   }
 
@@ -64,7 +95,7 @@ export default function Component() {
               <span>{feedback}</span>
             </div>
           )}
-          {isSubmitted && (
+          {isSubmitted && !isFinalSubmitted && (
             <div className="space-y-4 pt-4 border-t border-gray-200">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 전화번호:
@@ -78,7 +109,10 @@ export default function Component() {
                 className="transition-all duration-200 focus:ring-2 focus:ring-purple-500"
                 required
               />
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+              <Button 
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+                onClick={handleFinalSubmit}
+              >
                 참가 완료
               </Button>
             </div>
