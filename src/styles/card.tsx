@@ -1,5 +1,7 @@
 import React from 'react'
 
+//카드 디자인
+
 interface CardProps {
   className?: string
   children: React.ReactNode

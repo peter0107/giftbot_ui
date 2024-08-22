@@ -1,5 +1,7 @@
 import React from 'react'
 
+//버튼 디자인
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'ghost'
 }

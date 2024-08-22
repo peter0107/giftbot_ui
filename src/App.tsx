@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button } from "../src/button"
-import { Input } from "../src/input"
+import { Button } from "./styles/button"
+import { Input } from "./styles/input"
 import './styles/index.css';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../src/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./styles/card"
 import { AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 
 export default function Component() {
