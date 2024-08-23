@@ -40,7 +40,7 @@ db_config={
     'database': 'giftbot'
 }
 
-
+group_chat_id=-4266962896
 ###########명령어############
 
 
@@ -60,6 +60,11 @@ async def start(update: Update, context: CallbackContext)->None:
     chat=update.effective_chat
     member=await chat.get_member(user.id)
 
+  
+    await context.bot.send_message(chat_id=group_chat_id,text="참여신청",reply_markup=reply_markup)
+
+    await update.message.reply_text("그룹 채팅방으로 메세지가 포워딩되었습니다.")
+    '''
     #관리자만 명령어실행가능
     if member.status in ['administrator','creator']:
         
@@ -70,6 +75,7 @@ async def start(update: Update, context: CallbackContext)->None:
         )
     else:
         return
+    '''
 
 
 
@@ -109,33 +115,32 @@ async def pick(update: Update, context: CallbackContext) -> None:
 #나중에는 결제한 내용을 그룹채팅방으로 보내야함
 async def forward(update: Update,context: CallbackContext) -> None:
     command_response="포워딩 테스트중입니다"
-    group_chat_id=-4266962896
     await context.bot.send_message(chat_id=group_chat_id,text=command_response)
 
     await update.message.reply_text("그룹 채팅방으로 메세지가 포워딩되었습니다.")
 
 
-#WebApp용(결제용)
-async def test(update: Update, context: CallbackContext) -> None:
-    kb=[
-        [KeyboardButton("Show me Website!",
-                        web_app=WebAppInfo("https://giftbot-ui.vercel.app/"))]
-    ]
-    await update.message.reply_text("Let's do this",reply_markup=ReplyKeyboardMarkup(kb))
-    
 
-'''
+
+
 #참가인원 보기
 async def progress(update: Update, context: CallbackContext) -> None:
     user=update.effective_user
     chat=update.effective_chat
     member=await chat.get_member(user.id)
-
+    '''
     #관리자만 명령어실행가능
     if member.status in ['administrator','creator']:
         await update.message.reply_text(f"{len(candidates)}명이 참여하셨습니다")
+    '''
+    conn=mysql.connector.connect(**db_config)
+    cursor=conn.cursor(dictionary=True)
 
-'''
+    #참가자 인원 가져오기
+    cursor.execute('SELECT COUNT(*) AS total_participants FROM participants')
+    result=cursor.fetchone()
+    total_participants=result['total_participants']
+    await update.message.reply_text(f"{total_participants}명이 참가했습니다!")
 ###################################
 
 
@@ -146,9 +151,9 @@ def main()->None:
     application.add_handler(CommandHandler("start",start))
     #application.add_handler(CallbackQueryHandler(join,pattern='join'))
     application.add_handler(CommandHandler("pick",pick))
-    #application.add_handler(CommandHandler("progress",progress))
+    application.add_handler(CommandHandler("progress",progress))
     application.add_handler(CommandHandler("forward",forward))
-    application.add_handler(CommandHandler("test",test))
+    #application.add_handler(CommandHandler("test",test))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
