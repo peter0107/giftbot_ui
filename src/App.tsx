@@ -36,7 +36,7 @@ export default function Component() {
     }
 
     try{
-      const response=await fetch("http://3.129.40.81/api/participants",{
+      const response=await fetch("telegram-giftbot.com/api/participants",{
         method: 'POST',
         headers:{
           'Content-Type': 'application/json'

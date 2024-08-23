@@ -20,6 +20,7 @@ candidates=set()
 #사용자 ID와 메시지 ID를 저장할 딕셔너리(버튼을 클릭했을 때 클릭한 사람에게만 다른 화면이 뜨게 하기 위해서)
 user_messages={}
 
+'''
 #관리자만 사용할 수 있는 명령어 scope
 scope_admin=BotCommandScopeAllChatAdministrators()
 
@@ -29,6 +30,7 @@ commands=[
     BotCommand(command='pick', description="Random Selection"),
     BotCommand(command='progress', description="How many people")
 ]
+'''
 
 #MySQL 데이터베이스 설정
 db_config={
@@ -103,7 +105,23 @@ async def pick(update: Update, context: CallbackContext) -> None:
         conn.close()
     else:
         return
+    
+#나중에는 결제한 내용을 그룹채팅방으로 보내야함
+async def forward(update: Update,context: CallbackContext) -> None:
+    command_response="포워딩 테스트중입니다"
+    group_chat_id=-4266962896
+    await context.bot.send_message(chat_id=group_chat_id,text=command_response)
 
+    await update.message.reply_text("그룹 채팅방으로 메세지가 포워딩되었습니다.")
+
+
+#WebApp용(결제용)
+async def test(update: Update, context: CallbackContext) -> None:
+    kb=[
+        [KeyboardButton("Show me Website!",
+                        web_app=WebAppInfo("https://giftbot-ui.vercel.app/"))]
+    ]
+    await update.message.reply_text("Let's do this",reply_markup=ReplyKeyboardMarkup(kb))
     
 
 '''
@@ -124,12 +142,13 @@ async def progress(update: Update, context: CallbackContext) -> None:
 
 def main()->None:
     application=Application.builder().token(tg_token).build()
-    application.bot.set_my_commands(commands=commands, scope=scope_admin)
+    #application.bot.set_my_commands(commands=commands, scope=scope_admin)
     application.add_handler(CommandHandler("start",start))
     #application.add_handler(CallbackQueryHandler(join,pattern='join'))
     application.add_handler(CommandHandler("pick",pick))
     #application.add_handler(CommandHandler("progress",progress))
-
+    application.add_handler(CommandHandler("forward",forward))
+    application.add_handler(CommandHandler("test",test))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
