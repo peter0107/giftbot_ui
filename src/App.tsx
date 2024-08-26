@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import {Helmet} from 'react-helmet-async'
 import { Button } from "./styles/button"
 import { Input } from "./styles/input"
 import './styles/index.css';
@@ -9,6 +8,7 @@ import { AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 export default function Component() {
   const [answer, setAnswer] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [nickName, setNickName]= useState('')
   const [feedback, setFeedback] = useState('')
   const [isCorrect, setIsCorrect] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -32,7 +32,7 @@ export default function Component() {
 
     //api로 보낼 전번
     const payload= {
-      phoneNumber
+      phoneNumber,nickName
     }
 
     try{
@@ -110,9 +110,23 @@ export default function Component() {
                 className="transition-all duration-200 focus:ring-2 focus:ring-purple-500"
                 required
               />
+              <label htmlFor="nickname" className="block text-sm font-medium text-gray-700">
+                닉네임:
+              </label>
+              <Input
+                id="nickname"
+                type="text"
+                placeholder="닉네임을 입력하세요"
+                value={nickName}
+                onChange={(e)=>setNickName(e.target.value)}
+                className='transition-all duration-200 focus:ring-2 focus:ring-purple-500'
+                required
+
+              />
               <Button 
                 className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
                 onClick={handleFinalSubmit}
+                disabled={!phoneNumber || !nickName } //전화번호와 닉네임이 모두 입력되었을 때만 submit 가능
               >
                 참가 완료
               </Button>
