@@ -88,29 +88,31 @@ async def pick(update: Update, context: CallbackContext) -> None:
     user=update.effective_user
     chat=update.effective_chat
     member=await chat.get_member(user.id)
-
+    '''
     #관리자만 명령어실행가능
     if member.status in ['administrator','creator']:
-        conn=mysql.connector.connect(**db_config)
-        cursor=conn.cursor(dictionary=True)
+    '''
+    conn=mysql.connector.connect(**db_config)
+    cursor=conn.cursor(dictionary=True)
 
-        #참가자 목록을 가져오기
-        cursor.execute('SELECT * FROM participants')
-        results=cursor.fetchall()
+    #참가자 목록을 가져오기
+    cursor.execute('SELECT * FROM participants')
+    results=cursor.fetchall()
 
-        if not results:
-            await update.message.reply_text("아직 참여한 사용자가 없습니다.")
-            conn.close()
-            return
-    
-        chosen_user=random.choice(results)
-        await update.message.reply_text(f"{chosen_user['phoneNumber']}님 축하드립니다!! 당첨되셨습니다.")
-        
-
-        #연결 종료
+    if not results:
+        await update.message.reply_text("아직 참여한 사용자가 없습니다.")
         conn.close()
+        return
+    
+    chosen_user=random.choice(results)
+    await context.bot.send_message(chat_id=group_chat_id,text=f"{chosen_user['phoneNumber']}님 축하드립니다!! 당첨되셨습니다.")
+    #update.message.reply_text(f"{chosen_user['phoneNumber']}님 축하드립니다!! 당첨되셨습니다.")
+    '''
+    #연결 종료
+    conn.close()
     else:
         return
+    '''
     
 #나중에는 결제한 내용을 그룹채팅방으로 보내야함
 async def forward(update: Update,context: CallbackContext) -> None:
@@ -140,7 +142,8 @@ async def progress(update: Update, context: CallbackContext) -> None:
     cursor.execute('SELECT COUNT(*) AS total_participants FROM participants')
     result=cursor.fetchone()
     total_participants=result['total_participants']
-    await update.message.reply_text(f"{total_participants}명이 참가했습니다!")
+    await context.bot.send_message(chat_id=group_chat_id,text=f"{total_participants}명이 참가했습니다!") 
+    #update.message.reply_text(f"{total_participants}명이 참가했습니다!")
 ###################################
 
 

@@ -79,7 +79,7 @@ export default function Component() {
               <Input
                 id="question"
                 type="text"
-                placeholder="답변을 입력하세요"
+                placeholder="한글로 입력하세요"
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 className="transition-all duration-200 focus:ring-2 focus:ring-purple-500"
@@ -104,7 +104,7 @@ export default function Component() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="전화번호를 입력하세요"
+                placeholder="전화번호를 입력하세요(ex.01012345678)"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="transition-all duration-200 focus:ring-2 focus:ring-purple-500"
