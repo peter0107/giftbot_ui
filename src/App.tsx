@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Button } from "./styles/button"
 import { Input } from "./styles/input"
 import './styles/index.css';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./styles/card"
 import { AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 
-export default function Component({group_id}: any) {
+export default function Component() {
   const [answer, setAnswer] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [nickName, setNickName]= useState('')
@@ -14,6 +15,8 @@ export default function Component({group_id}: any) {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isFinalSubmitted, setIsFinalSubmitted] = useState(false)
 
+  const params=new URLSearchParams(location.search)
+  const group_id=params.get('group_id')
   const correctAnswer = "비트코인"
 
   const handleSubmit = (e: React.FormEvent) => {

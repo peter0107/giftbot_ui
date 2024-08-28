@@ -215,7 +215,7 @@ async def game_start(update: Update, context: CallbackContext):
     #선택된 그룹 ID 추출
     group_id=query.data.split('_')[1]
 
-    particp_url="https://giftbot-ui.vercel.app/?group_id={group_id}"
+    particp_url=f"https://giftbot-ui.vercel.app/?group_id={group_id}"
     keyboard=[
         [
             InlineKeyboardButton("참여",url=particp_url)
