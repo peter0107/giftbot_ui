@@ -5,7 +5,7 @@ import './styles/index.css';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./styles/card"
 import { AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 
-export default function Component() {
+export default function Component({group_id}: any) {
   const [answer, setAnswer] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [nickName, setNickName]= useState('')
@@ -32,7 +32,9 @@ export default function Component() {
 
     //api로 보낼 전번
     const payload= {
-      phoneNumber,nickName
+      phoneNumber,
+      nickName,
+      group_id: group_id
     }
 
     try{
