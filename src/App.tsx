@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { Button } from "./styles/button"
 import { Input } from "./styles/input"
 import './styles/index.css';
@@ -15,8 +14,8 @@ export default function Component() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isFinalSubmitted, setIsFinalSubmitted] = useState(false)
 
-  const location=useLocation()
-  const params=new URLSearchParams(location.search)
+ 
+  const params=new URLSearchParams(window.location.search)
   const group_id=params.get('group_id')
   const correctAnswer = "비트코인"
 
