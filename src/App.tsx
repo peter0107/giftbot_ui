@@ -15,6 +15,7 @@ export default function Component() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isFinalSubmitted, setIsFinalSubmitted] = useState(false)
 
+  const location=useLocation()
   const params=new URLSearchParams(location.search)
   const group_id=params.get('group_id')
   const correctAnswer = "비트코인"
