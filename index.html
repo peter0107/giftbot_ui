@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>룰렛</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        *{
+            font-family: 'Noto Sans KR', sans-serif;
+            box-sizing: border-box;
+        }
+
+        html, body{
+            margin: 0;
+            padding: 0;
+        }
+        
+        body{
+            background-color: #f7d794;
+        }
+
+        #app{
+            text-align: center;
+        }
+
+        .roulette-outer{
+            position: relative;
+            overflow: hidden;
+            width: 500px;
+            height: 500px;
+            font-size: 30px;
+            margin-left: auto;
+            margin-right: auto;
+            
+            
+        }
+
+        .roulette-outer .roulette{
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+            border: 8px solid black;
+            border-radius: 50%;
+        }
+
+        .roulette-outer .roulette-pin{
+            position: absolute;
+            top: 7%;
+            left: 48.7%;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 32px 8px 0 8px;
+            border-color: #FF4532 transparent transparent transparent;
+            transform: rotate(0deg);
+        }
+        
+
+        .roulette-outer .roulette .item-wrapper .item{
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            padding-top: 10%;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+        }
+
+        /*
+        .roulette-outer .roulette .item-wrapper .item:nth-child(1){
+            transform: rotate(0deg);
+        }
+        .roulette-outer .roulette .item-wrapper .item:nth-child(2){
+            transform: rotate(90deg);
+        }
+        .roulette-outer .roulette .item-wrapper .item:nth-child(3){
+            transform: rotate(180deg);
+        }
+        .roulette-outer .roulette .item-wrapper .item:nth-child(4){
+            transform: rotate(270deg);
+        }
+        */
+        .roulette-outer .roulette .line-wrapper .line{
+            position: absolute;
+            top: 0;
+            bottom: 50%;
+            left: 50%;
+            width: 4px;
+            background: black;
+
+            transform-origin: bottom;
+        }
+
+        /*
+        .roulette-outer .roulette .line-wrapper .line:nth-child(1){
+            transform: rotate(45deg);
+        }
+        .roulette-outer .roulette .line-wrapper .line:nth-child(2){
+            transform:rotate(135deg);
+        }
+        .roulette-outer .roulette .line-wrapper .line:nth-child(3){
+            transform: rotate(225deg);
+        }
+        .roulette-outer .roulette .line-wrapper .line:nth-child(4){
+            transform: rotate(315deg);
+        }
+        */
+
+        .roulette-outer .roulette{
+            transition: transform 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Roulette</h1>
+
+        <div class="roulette-outer">
+            <div class="roulette-pin"></div>
+            <div class="roulette" v-bind:style="rouletteStyle">
+
+                <!--값 영역-->
+                <div class="item-wrapper">
+                    <div class="item" v-for="(item,index) in items" v-bind:style="itemStyles[index]">
+                        {{item.value}}</div>
+                    
+                </div>
+
+                <div class="line-wrapper">
+                    <div class="line" v-for="(item,index) in items" v-bind:style="lineStyles[index]">
+                        
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <button class="play_btn" v-on:click="play">Play!!</button>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        Vue.createApp({
+            data(){
+                return{
+                    items:[
+                        {value:"1"},
+                        {value:"2"},
+                        {value:"3"},
+                        {value:"4"},
+                    ],
+                    itemStyles:[],
+                    lineStyles:[],
+                    current:4, //pin이 가리키는 데이터 위치
+                    count:0
+                };
+            },
+            computed:{
+                //하나의 항목당 각도를 계산
+                segment(){
+                    return 360/this.items.length;
+                },
+
+                //line 하나당 각도를 계산(1/2배)
+                offset(){
+                    return this.segment/2;
+                },
+                
+                //룰렛이 돌아가는 각도 계산
+                angle(){
+                    let cycle=this.count*360*5;
+                    
+                    return this.current*this.segment+cycle;
+                    /*let temp=-this.current*this.segment;
+                    let randomOffset=Math.floor(Math.random()*this.segment)-(this.offset);
+                    let cycle=this.count*360*5;
+                    return temp+randomOffset+cycle*/
+                },
+
+                //
+                rouletteStyle(){
+                    return{
+                        "transform":"rotate("+(this.angle)+"deg)"
+                    }
+                }
+            },
+            //랜덤으로 룰렛판의 위치 변경
+            methods:{
+                play(){
+                    this.count++;
+                    this.current=Math.floor(Math.random()*this.items.length);
+                    console.log(this.current);
+                }
+            },
+            created(){
+                //itemStyle 정의
+                this.items.forEach((el,idx)=>{
+                    this.itemStyles.push({
+                        "transform": "rotate("+(this.segment*idx)+"deg)",
+                    });
+
+                    this.lineStyles.push({
+                        "transform": "rotate("+(this.segment*idx+this.offset)+"deg)",
+                    });
+
+                
+                });
+            }
+        }).mount("#app");
+    </script>
+    
+</body>
+</html>

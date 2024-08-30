@@ -93,19 +93,7 @@ async def track_chats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     
     
 
-async def show_chats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Shows which chats the bot is in"""
-    user_ids = ", ".join(str(uid) for uid in context.bot_data.setdefault("user_ids", set()))
-    group_ids = ", ".join(str(gid) for gid in context.bot_data.setdefault("group_ids", set()))
-    channel_ids = ", ".join(str(cid) for cid in context.bot_data.setdefault("channel_ids", set()))
-    text = (
-        f"@{context.bot.username} is currently in a conversation with the user IDs {user_ids}."
-        f" Moreover it is a member of the groups with IDs {group_ids} "
-        f"and administrator in the channels with IDs {channel_ids}."
-    )
-    await update.effective_message.reply_text(text)
-
-#add groupd to bot_groups
+#add group id to bot_groups
 async def add_group(group_id, group_name):
     try:
         # MySQL 데이터베이스에 연결
@@ -160,6 +148,8 @@ async def get_admin_groups(context, user_id, db_config):
 
     return admin_groups
 
+###########################################
+
 
 ###########명령어############
 
@@ -188,7 +178,7 @@ async def start(update: Update, context: CallbackContext)->None:
             for group_name, group_id in admin_groups
         ]
         reply_markup=InlineKeyboardMarkup(keyboard)
-        await context.bot.send_message(chat_id=chat_id, text="참여할 그룹을 선택하세요: ", reply_markup=reply_markup)
+        await context.bot.send_message(chat_id=chat_id, text="그룹 혹은 채널을 선택하세요: ", reply_markup=reply_markup)
 
 
     #await context.bot.send_message(chat_id=group_chat_id,text="참여신청",reply_markup=reply_markup)
@@ -236,7 +226,7 @@ async def game_start(update: Update, context: CallbackContext):
 
 
 
-#무작위 뽑기(미완)
+#무작위 뽑기(테스트완)
 
 async def pick(update: Update, context: CallbackContext) -> None:
 
@@ -278,10 +268,16 @@ async def pick_start(update: Update, context: CallbackContext):
             selected_participant = random.choice(participants)
             nickname = selected_participant['nickName']
 
+            cursor.execute("DELETE FROM participants WHERE group_id = %s",(group_id,))
+            conn.commit()
             # 선택된 참가자에게 메시지 전송
-            await context.bot.send_message(chat_id=group_id, text=f"선택된 참가자: {nickname}")
+            await context.bot.send_message(chat_id=group_id, text=f"{nickname}님 당첨축하드립니다!")
         else:
             await context.bot.send_message(chat_id=query.message.chat_id, text="해당 그룹에 참가자가 없습니다.")
+        
+        cursor.close()
+        conn.close()
+
     
     except mysql.connector.Error as e:
         await context.bot.send_message(chat_id=query.message.chat_id, text=f"데이터베이스 오류 발생: {e}")
@@ -292,27 +288,52 @@ async def pick_start(update: Update, context: CallbackContext):
 
 
 
-#참가인원 보기(미완)
-'''
+#참가인원 보기
+
 async def progress(update: Update, context: CallbackContext) -> None:
+
     user=update.effective_user
     chat=update.effective_chat
-    member=await chat.get_member(user.id)
-    
-    #관리자만 명령어실행가능
-    if member.status in ['administrator','creator']:
-        await update.message.reply_text(f"{len(candidates)}명이 참여하셨습니다")
-    
-    conn=mysql.connector.connect(**db_config)
-    cursor=conn.cursor(dictionary=True)
+    chat_id=update.message.chat_id
+    user_id=update.message.from_user.id
 
-    #참가자 인원 가져오기
-    cursor.execute('SELECT COUNT(*) AS total_participants FROM participants')
-    result=cursor.fetchone()
-    total_participants=result['total_participants']
-    await context.bot.send_message(chat_id=group_chat_id,text=f"{total_participants}명이 참가했습니다!") 
-    #update.message.reply_text(f"{total_participants}명이 참가했습니다!")
-'''
+    #사용자가 admin으로 있는 그룹 or 채널
+    admin_groups=await get_admin_groups(context,user_id,db_config)
+
+    keyboard=[
+        [InlineKeyboardButton(group_name,callback_data=f"progress_{group_id}_{chat_id}")]
+        for group_name, group_id in admin_groups
+    ]
+    reply_markup=InlineKeyboardMarkup(keyboard)
+    await context.bot.send_message(chat_id=chat_id, text="그룹 혹은 채널을 선택하세요: ", reply_markup=reply_markup)
+    
+
+async def progress_start(update: Update, context: CallbackContext) -> None:
+    
+    query=update.callback_query
+    await query.answer()
+
+
+    #선택된 그룹 ID, 현재 chat ID 추출
+    group_id=query.data.split('_')[1]
+    chat_id=query.data.split('_')[2]
+    #참여자 닉네임 가져와서 랜덤뽑기진행
+    try:
+        conn=mysql.connector.connect(**db_config)
+        cursor=conn.cursor(dictionary=True)
+        cursor.execute("SELECT COUNT(*) AS total_records FROM participants WHERE group_id = %s", (group_id,))
+        
+        result=cursor.fetchone()
+        count=result['total_records']
+        
+        cursor.close()
+        conn.close()
+
+        await context.bot.send_message(chat_id=chat_id, text=f"{count}명이 참가중입니다")
+
+    
+    except mysql.connector.Error as e:
+        await context.bot.send_message(chat_id=query.message.chat_id, text=f"데이터베이스 오류 발생: {e}")
 ###################################
 
 
@@ -320,13 +341,23 @@ async def progress(update: Update, context: CallbackContext) -> None:
 def main()->None:
     application=Application.builder().token(tg_token).build()
     #application.bot.set_my_commands(commands=commands, scope=scope_admin)
+
+    #항상작동
     application.add_handler(ChatMemberHandler(track_chats,ChatMemberHandler.MY_CHAT_MEMBER))
+
+    #/start
     application.add_handler(CommandHandler("start",start))
     application.add_handler(CallbackQueryHandler(game_start,pattern='^join_'))
-    application.add_handler(CommandHandler("show_chats", show_chats))
+
+    #/pick
     application.add_handler(CommandHandler("pick",pick))
     application.add_handler(CallbackQueryHandler(pick_start,pattern='^pick_'))
-    #application.add_handler(CommandHandler("progress",progress))
+
+    #/progress
+    application.add_handler(CommandHandler("progress",progress))
+    application.add_handler(CallbackQueryHandler(progress_start,pattern='^progress_'))
+
+    #running
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
