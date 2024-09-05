@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>룰렛</title>
+    <title>Roulette</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
@@ -74,20 +74,6 @@
             justify-content: center;
         }
 
-        /*
-        .roulette-outer .roulette .item-wrapper .item:nth-child(1){
-            transform: rotate(0deg);
-        }
-        .roulette-outer .roulette .item-wrapper .item:nth-child(2){
-            transform: rotate(90deg);
-        }
-        .roulette-outer .roulette .item-wrapper .item:nth-child(3){
-            transform: rotate(180deg);
-        }
-        .roulette-outer .roulette .item-wrapper .item:nth-child(4){
-            transform: rotate(270deg);
-        }
-        */
         .roulette-outer .roulette .line-wrapper .line{
             position: absolute;
             top: 0;
@@ -98,21 +84,6 @@
 
             transform-origin: bottom;
         }
-
-        /*
-        .roulette-outer .roulette .line-wrapper .line:nth-child(1){
-            transform: rotate(45deg);
-        }
-        .roulette-outer .roulette .line-wrapper .line:nth-child(2){
-            transform:rotate(135deg);
-        }
-        .roulette-outer .roulette .line-wrapper .line:nth-child(3){
-            transform: rotate(225deg);
-        }
-        .roulette-outer .roulette .line-wrapper .line:nth-child(4){
-            transform: rotate(315deg);
-        }
-        */
 
         .roulette-outer .roulette{
             transition: transform 1s ease-in-out;
@@ -126,111 +97,116 @@
         <div class="roulette-outer">
             <div class="roulette-pin"></div>
             <div class="roulette" v-bind:style="rouletteStyle">
-
-                <!--값 영역-->
                 <div class="item-wrapper">
                     <div class="item" v-for="(item,index) in items" v-bind:style="itemStyles[index]">
-                        {{item.value}}</div>
-                    
-                </div>
-
-                <div class="line-wrapper">
-                    <div class="line" v-for="(item,index) in items" v-bind:style="lineStyles[index]">
-                        
+                        {{item.value}}
                     </div>
-                    
+                </div>
+                <div class="line-wrapper">
+                    <div class="line" v-for="(item,index) in items" v-bind:style="lineStyles[index]"></div>
                 </div>
             </div>
         </div>
 
-        <button class="play_btn" v-on:click="play">Play!!</button>
+        <button @click="play" :disabled="spinning">Play!!</button>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
         Vue.createApp({
-            data(){
-                return{
-                    items:[],
-                    itemStyles:[],
-                    lineStyles:[],
-                    current:4, //pin이 가리키는 데이터 위치
-                    count:0
+            data() {
+                return {
+                    items: [],
+                    itemStyles: [],
+                    lineStyles: [],
+                    current: 0,
+                    count: 0,
+                    winner: null,
+                    groupId: null,
+                    spinning: false
                 };
             },
-            computed:{
-                //하나의 항목당 각도를 계산
-                segment(){
-                    return 360/this.items.length;
+            computed: {
+                segment() {
+                    return 360 / this.items.length;
                 },
-
-                //line 하나당 각도를 계산(1/2배)
-                offset(){
-                    return this.segment/2;
+                offset() {
+                    return this.segment / 2;
                 },
-                
-                //룰렛이 돌아가는 각도 계산
-                angle(){
-                    let cycle=this.count*360*5;
-                    
-                    return this.current*this.segment+cycle;
-                    /*let temp=-this.current*this.segment;
-                    let randomOffset=Math.floor(Math.random()*this.segment)-(this.offset);
-                    let cycle=this.count*360*5;
-                    return temp+randomOffset+cycle*/
+                angle() {
+                    let cycle = this.count * 360 * 5;
+                    return this.current * this.segment + cycle;
                 },
-
-                //
-                rouletteStyle(){
-                    return{
-                        "transform":"rotate("+(this.angle)+"deg)"
+                rouletteStyle() {
+                    return {
+                        "transform": "rotate(" + (this.angle) + "deg)"
                     }
                 }
             },
             //랜덤으로 룰렛판의 위치 변경
-            methods:{
-                play(){
-                    this.count++;
-                    this.current=Math.floor(Math.random()*this.items.length);
-                    console.log(this.current);
+            methods: {
+                play() {
+                    if (this.spinning) return;
+                    this.spinning = true;
+
+                    // 미리 선택된 승자의 인덱스 찾기
+                    const winnerIndex = this.items.findIndex(item => item.value === this.winner);
+                    if (winnerIndex === -1) {
+                        console.error('Winner not found in the items list');
+                        this.spinning = false;
+                        return;
+                    }
+
+                    // 룰렛 회전 애니메이션
+                    this.spinAnimation(winnerIndex);
+                },
+                spinAnimation(winnerIndex) {
+                    this.count++; // 회전 수 증가
+                    const totalRotation = this.count * 360 * 5 + (360 - (winnerIndex * this.segment));
+                    const duration = 5000; // 5초 동안 회전
+
+                    this.current = this.items.length - winnerIndex;
+
+                    setTimeout(() => {
+                        this.spinning = false;
+                        console.log(`룰렛이 ${this.items[winnerIndex].value}에서 멈췄습니다!`);
+                    }, duration);
+                },
+                setupRoulette() {
+                    this.items.forEach((el, idx) => {
+                        this.itemStyles.push({
+                            "transform": "rotate(" + (this.segment * idx) + "deg)",
+                        });
+
+                        this.lineStyles.push({
+                            "transform": "rotate(" + (this.segment * idx + this.offset) + "deg)",
+                        });
+                    });
                 }
             },
-            created(){
-
-                //서버에서 닉네임 데이터를 가져옴
-                axios.get('https://telegram-giftbot.com/api/nicknames')
+            mounted() {
+                const urlParams = new URLSearchParams(window.location.search);
+                this.groupId = urlParams.get('group_id');
+                const encodedWinner = urlParams.get('winner');
+                
+                if (encodedWinner) {
+                    this.winner = atob(encodedWinner);
+                }
+                
+                this.fetchParticipants();
+            },
+            created() {
+                axios.get(`https://telegram-giftbot.com/api/nicknames?group_id=${this.groupId}`)
                     .then(response => {
                         console.log("response: ", response);
-                        this.items=response.data.map(nickname => ({ value: nickname}));
-                        this.items.forEach((el,idx) => {
-                            this.itemStyles.push({
-                                "transform": "rotate(" + (this.segment * idx) + "deg)",
-                            });
-
-                            this.lineStyles.push({
-                                "transform": "rotate(" + (this.segment * idx + this.offset) + "deg)",
-                            });
-                        });
+                        this.items = response.data.map(nickname => ({ value: nickname }));
+                        this.setupRoulette();
                     })
                     .catch(error => {
-                        console.error('Error fetching nicknames:',error);
-                    })
-                /*//itemStyle 정의
-                this.items.forEach((el,idx)=>{
-                    this.itemStyles.push({
-                        "transform": "rotate("+(this.segment*idx)+"deg)",
+                        console.error('Error fetching nicknames:', error);
                     });
-
-                    this.lineStyles.push({
-                        "transform": "rotate("+(this.segment*idx+this.offset)+"deg)",
-                    });
-
-                
-                });*/
             }
         }).mount("#app");
     </script>
-    
-
 </body>
 </html>

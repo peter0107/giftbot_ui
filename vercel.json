@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/roulette",
+            "destination": "/roulette.html"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}

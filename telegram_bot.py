@@ -213,6 +213,19 @@ async def game_start(update: Update, context: CallbackContext):
     ]
     particp_reply_markup=InlineKeyboardMarkup(keyboard)
 
+    try:
+        conn=mysql.connector.connect(**db_config)
+        cursor=conn.cursor(dictionary=True)
+        cursor.execute("DELETE FROM participants WHERE group_id = %s",(group_id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    except mysql.connector.Error as e:
+        await context.bot.send_message(chat_id=query.message.chat_id, text=f"데이터베이스 오류 발생: {e}")
+
+
+
     
 
     #참여링크 전송(해당 그룹으로)
@@ -248,37 +261,39 @@ async def pick(update: Update, context: CallbackContext) -> None:
 
 
 async def pick_start(update: Update, context: CallbackContext):
-
-    query=update.callback_query
+    query = update.callback_query
     await query.answer()
 
+    group_id = query.data.split('_')[1]
 
-    #선택된 그룹 ID 추출
-    group_id=query.data.split('_')[1]
-
-    #참여자 닉네임 가져와서 랜덤뽑기진행
     try:
-        conn=mysql.connector.connect(**db_config)
-        cursor=conn.cursor(dictionary=True)
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        
         cursor.execute("SELECT nickName FROM participants WHERE group_id = %s", (group_id,))
         participants = cursor.fetchall()
 
         if participants:
-            # 참가자 중에서 랜덤으로 한 명 선택
             selected_participant = random.choice(participants)
             nickname = selected_participant['nickName']
 
-            cursor.execute("DELETE FROM participants WHERE group_id = %s",(group_id,))
-            conn.commit()
-            # 선택된 참가자에게 메시지 전송
-            await context.bot.send_message(chat_id=group_id, text=f"{nickname}님 당첨축하드립니다!")
+            # 선택된 참가자 정보를 암호화하여 URL 파라미터로 전달
+            import base64
+            encoded_winner = base64.urlsafe_b64encode(nickname.encode()).decode()
+
+            roulette_url = f"https://giftbot-ui.vercel.app/roulette?group_id={group_id}&winner={encoded_winner}"
+            keyboard = [
+                [InlineKeyboardButton("결과 확인", url=roulette_url)]
+            ]
+            roulette_reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await context.bot.send_message(chat_id=group_id, text=f"당첨자가 선정되었습니다. 결과를 확인해주세요!", reply_markup=roulette_reply_markup)
         else:
             await context.bot.send_message(chat_id=query.message.chat_id, text="해당 그룹에 참가자가 없습니다.")
         
         cursor.close()
         conn.close()
 
-    
     except mysql.connector.Error as e:
         await context.bot.send_message(chat_id=query.message.chat_id, text=f"데이터베이스 오류 발생: {e}")
 
