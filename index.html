@@ -145,18 +145,13 @@
 
         <button class="play_btn" v-on:click="play">Play!!</button>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
         Vue.createApp({
             data(){
                 return{
-                    items:[
-                        {value:"1"},
-                        {value:"2"},
-                        {value:"3"},
-                        {value:"4"},
-                    ],
+                    items:[],
                     itemStyles:[],
                     lineStyles:[],
                     current:4, //pin이 가리키는 데이터 위치
@@ -201,7 +196,26 @@
                 }
             },
             created(){
-                //itemStyle 정의
+
+                //서버에서 닉네임 데이터를 가져옴
+                axios.get('https://telegram-giftbot.com/api/nicknames')
+                    .then(response => {
+                        console.log("response: ", response);
+                        this.items=response.data.map(nickname => ({ value: nickname}));
+                        this.items.forEach((el,idx) => {
+                            this.itemStyles.push({
+                                "transform": "rotate(" + (this.segment * idx) + "deg)",
+                            });
+
+                            this.lineStyles.push({
+                                "transform": "rotate(" + (this.segment * idx + this.offset) + "deg)",
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching nicknames:',error);
+                    })
+                /*//itemStyle 정의
                 this.items.forEach((el,idx)=>{
                     this.itemStyles.push({
                         "transform": "rotate("+(this.segment*idx)+"deg)",
@@ -212,10 +226,11 @@
                     });
 
                 
-                });
+                });*/
             }
         }).mount("#app");
     </script>
     
+
 </body>
 </html>
