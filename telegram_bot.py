@@ -276,7 +276,7 @@ async def pick_start(update: Update, context: CallbackContext):
         if participants:
             selected_participant = random.choice(participants)
             nickname = selected_participant['nickName']
-
+            logger.info(f"selected_participant: {nickname}")
             # 선택된 참가자 정보를 암호화하여 URL 파라미터로 전달
             import base64
             encoded_winner = base64.urlsafe_b64encode(nickname.encode()).decode()
